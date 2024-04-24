@@ -1,6 +1,4 @@
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 const middlewareError = (err, req, res, next) => {
     const error = {...err};
     error.message = err.message;

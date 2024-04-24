@@ -1,6 +1,4 @@
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 class CoreError extends Error {
     constructor(msg, code) {
         super(msg);

@@ -1,6 +1,4 @@
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 let express = require('express');
 let router = express.Router();
 let {errorHandle, useAsync} = require('../core');

@@ -1,6 +1,4 @@
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 const MODE = process.env.MODE === "production";
 /**
  * @type {string} default server uri
@@ -32,7 +30,7 @@ const dbConn = new Sequelize(DATABASE_NAME, DATABASE_USER, DATABASE_PASS, {
     dialect: DATABASE_LANG,
     logging: (e) => {
         //write to log file here...
-        //console.log(e);
+        // console.log("in");
     },
 });
 module.exports = dbConn;

@@ -1,6 +1,4 @@
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 let express = require('express');
 let path = require('path');
 let cors = require('cors');

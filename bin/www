@@ -8,7 +8,7 @@
  */
 require('dotenv').config();
 let app = require('../app');
-let debug = require('debug')('scriipo-app:server');
+let debug = require('debug')('taap-app:server');
 let http = require('http');
 /**
  * Get port from environment and store in Express.

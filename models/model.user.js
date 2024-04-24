@@ -1,12 +1,10 @@
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 /**
  * Model for user and admin
  */
 const sequelize = require('./../database');
 const {DataTypes, Model} = require('sequelize');
-const tableName = "scriipo_users";
+const tableName = "taap_users";
 /**
  * Model extending sequelize model class
  */

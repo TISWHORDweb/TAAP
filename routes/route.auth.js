@@ -1,6 +1,4 @@
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 const {bodyParser} = require('../middleware/middleware.protects');
 
 const express = require('express');

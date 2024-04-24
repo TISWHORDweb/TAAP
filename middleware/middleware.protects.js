@@ -1,6 +1,4 @@
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 let {ModelUser} = require('../models');
 const {errorHandle} = require('../core');
 

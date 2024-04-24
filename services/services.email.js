@@ -1,12 +1,10 @@
 'use strict';
-/**
- * Slantapp code and properties {www.slantapp.io}
- */
+
 const nodemailer = require("nodemailer");
 const fs = require('fs');
 
 class MailTemple {
-    btnUrl = "https://scriipo.com";
+    btnUrl = "https://taap.com";
     btnText = "Check classes";
     constructor(to) {
         this.to = to;
