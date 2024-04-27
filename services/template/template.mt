@@ -124,8 +124,8 @@
                         <tbody>
                             <tr>
                                 <td style="text-align:center;padding:25px 0 0;">
-                                    <p style="padding-top: 15px; font-size: 12px;"><img style="height: 20px" src="https://i.im.ge/2022/07/24/FDprF0.png" alt="logo"></p>
-                                    <p style="font-size: 13px; margin-top: 10px; margin-bottom: 10px">Copyright © 2022 taap. All rights reserved.<br><a style="color: #8094ae; text-decoration:none;" href="https://taap.com">taap Academy</a>.</p>
+                                    //<p style="padding-top: 15px; font-size: 12px;"><img style="height: 20px" src="https://i.im.ge/2022/07/24/FDprF0.png" alt="logo"></p>
+                                    <p style="font-size: 13px; margin-top: 10px; margin-bottom: 10px">Copyright © 2022 taap. All rights reserved.<br><a style="color: #8094ae; text-decoration:none;" href="https://taap.com">taap </a>.</p>
                                     <ul style="margin: 10px -4px 0;padding: 0;">
                                         <li style="display: inline-block; list-style: none; padding: 4px;"><a style="display: inline-block; height: 30px; width:30px;border-radius: 50%; background-color: #ffffff" href="https://facebook.com/taap" target="_blank"><img style="width: 30px" src="https://i.im.ge/2022/07/24/FDEwB9.png" alt="brand"></a></li>
                                         <li style="display: inline-block; list-style: none; padding: 4px;"><a style="display: inline-block; height: 30px; width:30px;border-radius: 50%; background-color: #ffffff" href="https://instagram.com/taap" target="_blank"><img style="width: 30px" src="https://i.im.ge/2022/07/24/FDEmYK.png" alt="brand"></a></li>
