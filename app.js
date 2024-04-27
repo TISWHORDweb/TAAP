@@ -8,9 +8,7 @@ let errorHandler = require('./middleware/middleware.error');
 let {errorHandle} = require('./core');
 
 let indexRouter = require('./routes/index');
-let frontendRouter = require('./routes/route.front');
 let authRouter = require('./routes/route.auth');
-let usersRouter = require('./routes/route.user');
 let adminRouter = require('./routes/route.admin');
 
 let app = express();
@@ -39,9 +37,7 @@ app.use(express.static(path.join(__dirname, 'public')));
  * list of routes
  */
 app.use('/api/', indexRouter);
-app.use('/api/v1/front', frontendRouter);
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/user', usersRouter);
 app.use('/api/v1/admin', adminRouter);
 //after all route, show 404
 app.use('*', (req, res)=>{
