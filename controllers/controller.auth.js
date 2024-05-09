@@ -130,8 +130,7 @@ exports.authSchoolRegister = useAsync(async (req, res, next) => {
         //create data if all data available
         const schema = Joi.object({
             email: Joi.string().email({ minDomainSegments: 2 }).required(),
-            firstName: Joi.string().min(2).max(150).required(),
-            lastName: Joi.string().min(2).max(150).required(),
+            name: Joi.string().min(2).max(150).required(),
             password: Joi.string().min(6).max(12).required()
         })
         //validate user

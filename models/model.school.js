@@ -1,6 +1,6 @@
 
 /**
- * Model for user and admin
+ * Model for school
  */
 const sequelize = require('../database');
 const {DataTypes, Model} = require('sequelize');
@@ -15,8 +15,7 @@ ModelSchool.init({
     sid: {type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true},
     email: {type: DataTypes.STRING, allowNull: false, unique: true},
     password: {type: DataTypes.STRING, allowNull: false},
-    firstName: {type: DataTypes.STRING, allowNull: false},
-    lastName: {type: DataTypes.STRING, allowNull: false},
+    name: {type: DataTypes.STRING, allowNull: false},
     phone: {type: DataTypes.STRING, allowNull: true},
     country: {type: DataTypes.STRING, allowNull: true},
     balance: {type: DataTypes.INTEGER, allowNull: true, defaultValue: 0},

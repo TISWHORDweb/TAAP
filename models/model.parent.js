@@ -1,6 +1,6 @@
 
 /**
- * Model for user and admin
+ * Model for parent
  */
 const sequelize = require('../database');
 const {DataTypes, Model} = require('sequelize');
