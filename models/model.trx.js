@@ -6,24 +6,25 @@
  */
 const sequelize = require('./../database');
 const {DataTypes, Model} = require('sequelize');
-const tableName = "taap_transactions";
+const tableName = "taap_trx";
 const queryInterface = sequelize.getQueryInterface();
 
 /**
  * Model extending sequelize model class
  */
-class ModelTransactions extends Model {
+class ModelTrx extends Model {
 }
 
-ModelTransactions.init({
-    tid: {type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true},
-    pid: {type: DataTypes.INTEGER},
+ModelTrx.init({
+    txid: {type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true},
     sid: {type: DataTypes.INTEGER},
-    Date: {type: DataTypes.DATE, defaultValue: DataTypes.NOW},
+    tid: {type: DataTypes.INTEGER},
+    pid: {type: DataTypes.INTEGER},
     transactionID: {type: DataTypes.STRING},
-    amount: {type: DataTypes.STRING},
+    amount: {type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00},
+    prevBalance: {type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00},
+    newBalance: {type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00},
     serviceType: {type: DataTypes.STRING},
-    status: {type: DataTypes.STRING},
     fullName: {type: DataTypes.STRING},
     accountNumber: {type: DataTypes.STRING},
     bankName: {type: DataTypes.STRING},
@@ -32,11 +33,16 @@ ModelTransactions.init({
     customer: {type: DataTypes.STRING},
     narration: {type: DataTypes.STRING},
     reference: {type: DataTypes.STRING},
-    statusType: {type: DataTypes.STRING},
+    statusType: {type: DataTypes.ENUM('Debit', 'Credit')},
     debitAmount: {type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00},
-    country: {type: DataTypes.STRING},
     creditAmount: {type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00},
-    issue: {type: DataTypes.INTEGER, defaultValue: 0}
+    country: {type: DataTypes.STRING},
+    issue: {type: DataTypes.INTEGER, defaultValue: 0},
+    status: {
+        type: DataTypes.ENUM(
+            'Successful', 'Failed', 'Pending', 'Refund',
+            'Processing', 'Invalid', 'Cancelled', 'Declined')
+    }
 }, {sequelize, tableName});
 
 /**
@@ -44,4 +50,4 @@ ModelTransactions.init({
  */
 
 sequelize.sync();
-module.exports = ModelTransactions;
+module.exports = ModelTrx;
