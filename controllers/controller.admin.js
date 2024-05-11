@@ -9,7 +9,8 @@ const {emailTemple, etpl} = require('./../services');
 /**
  * importing models
  */
-const {ModelUser} = require('./../models');
+const {ModelUser, ModelSchool, ModelGlobal} = require('./../models');
+const { EmailNote } = require('../core/core.notify');
 /**
  * @type {function(*=, *=, *=): Promise<unknown>}
  */
@@ -51,5 +52,89 @@ exports.adminStats = useAsync(async (req, res, next) => {
         res.json(utils.JParser("ok-response", !!user, user));
     } catch (e) {
         throw new errorHandle(e.message, 202);
+    }
+});
+
+
+////GLOBAL
+exports.createGlobal = useAsync(async (req, res) => {
+    try {
+
+        let global = await ModelGlobal.create(req.body)
+        return res.json(utils.JParser('Banks added successfully', !!global, global))
+
+    } catch (e) {
+        throw new errorHandle(e.message, 400)
+    }
+})
+
+exports.global = useAsync(async (req, res, next) => {
+    try {
+        const global = await ModelGlobal.findAll();
+
+        res.json(utils.JParser("ok-response", !!global, global));
+
+    } catch (e) {
+        throw new errorHandle(e.message, 202);
+    }
+});
+
+exports.disableAllUsers = useAsync(async (req, res, next) => {
+    try {
+        const options = { where: { gid: process.env.GLOBAL_ID } }
+
+        const body = { disableAllUsers: true, by: req.body.by }
+        await ModelGlobal.update(body, options).then(async () => {
+            let global = await ModelGlobal.findOne(options)
+            res.json(utils.JParser("ok-response", !!global, global));
+        })
+
+    } catch (e) {
+        throw new errorHandle(e.message, 400);
+    }
+});
+
+exports.enableAllUsers = useAsync(async (req, res, next) => {
+    try {
+        const options = { where: { gid: process.env.GLOBAL_ID } }
+
+        const body = { disableAllUsers: false, by: req.body.by }
+        await ModelGlobal.update(body, options).then(async () => {
+            let global = await ModelGlobal.findOne(options)
+            res.json(utils.JParser("ok-response", !!global, global));
+        })
+
+    } catch (e) {
+        throw new errorHandle(e.message, 400);
+    }
+});
+
+exports.disableAllTransactions = useAsync(async (req, res, next) => {
+    try {
+        const options = { where: { gid: process.env.GLOBAL_ID } }
+
+        const body = { disableAllTransfer: true, by: req.body.by }
+        await ModelGlobal.update(body, options).then(async () => {
+            let global = await ModelGlobal.findOne(options)
+            res.json(utils.JParser("ok-response", !!global, global));
+        })
+
+    } catch (e) {
+        throw new errorHandle(e.message, 400);
+    }
+});
+
+exports.enableAllTransactions = useAsync(async (req, res, next) => {
+    try {
+        const options = { where: { gid: process.env.GLOBAL_ID } }
+
+        const body = { disableAllTransfer: false, by: req.body.by }
+        await ModelGlobal.update(body, options).then(async () => {
+            let global = await ModelGlobal.findOne(options)
+            res.json(utils.JParser("ok-response", !!global, global));
+        })
+
+    } catch (e) {
+        throw new errorHandle(e.message, 400);
     }
 });
