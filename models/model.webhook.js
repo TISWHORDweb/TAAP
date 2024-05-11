@@ -2,7 +2,7 @@ const sequelize = require('./../database');
 const {DataTypes, Model} = require('sequelize');
 const tableName = "taap_webhooks";
 
-// const ModelAdmin = require('./model.business')
+
 function isJson(str) {
     try {
         JSON.parse(str);
