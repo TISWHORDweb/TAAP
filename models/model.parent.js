@@ -19,7 +19,10 @@ ModelParent.init({
     lastName: {type: DataTypes.STRING, allowNull: false},
     phone: {type: DataTypes.STRING, allowNull: true},
     country: {type: DataTypes.STRING, allowNull: true},
-    balance: {type: DataTypes.INTEGER, allowNull: true, defaultValue: 0},
+    balance: {
+        type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00
+    },
+    balanceUpdatedAt: {type: DataTypes.DATE, defaultValue: DataTypes.NOW},
     code: {type: DataTypes.INTEGER, allowNull: true, defaultValue: 0},
     apiKey: {type: DataTypes.STRING, allowNull: true, unique: true},
     token: {type: DataTypes.STRING, allowNull: true, unique: true},
