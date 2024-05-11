@@ -12,9 +12,12 @@ class ModelProgram extends Model {
 }
 
 ModelProgram.init({
-    pid: {type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true},
+    prid: {type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true},
+    sid: {type: DataTypes.INTEGER},
     name: {type: DataTypes.STRING, allowNull: false},
-    amount: {type: DataTypes.INTEGER, allowNull: true, defaultValue: 0},
+    amount: {
+        type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00
+    },
     deadline: {type: DataTypes.STRING, allowNull: false},
     description: {type: DataTypes.STRING, allowNull: true},
     status: {type: DataTypes.BOOLEAN, defaultValue: false},
