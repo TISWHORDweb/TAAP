@@ -1,7 +1,7 @@
 const { FlwTrxCron } = require("../core/core.cron");
-const { paginated, generateTransactionId, generateTrxToken, Charges, DecryptPin, GlobalDisable, CurrentDate, fraudulentTrx, RowCheck } = require("../core/core.utils");
+const { paginated, generateTransactionId, generateTrxToken, Charges, DecryptPin, GlobalDisable, CurrentDate, fraudulentTrx, RowCheck, TrxTimeChecker2, RowCheck2 } = require("../core/core.utils");
 const { ModelTransactions, ModelSchool, ModelTrxToken, ModelParent } = require("../models");
-const {useAsync, utils, errorHandle,} = require('./../core');
+const { useAsync, utils, errorHandle, } = require('./../core');
 const cron = require('node-cron');
 const Flutterwave = require('flutterwave-node-v3');
 // const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
@@ -73,7 +73,7 @@ exports.parentTransfer = useAsync(async (req, res) => {
     try {
         const pid = req.pid
         const options = {
-            where: {pid}
+            where: { pid }
         }
 
         const transaction = await paginated(ModelTransactions, req, options, true);
@@ -88,7 +88,7 @@ exports.schoolTransfer = useAsync(async (req, res) => {
     try {
         const sid = req.sid
         const options = {
-            where: {sid}
+            where: { sid }
         }
 
         const transaction = await paginated(ModelTransactions, req, options, true);
@@ -104,15 +104,15 @@ exports.adminUserTransfer = useAsync(async (req, res) => {
     try {
         const id = req.params.id
         const type = req.params.type
-        let options ;
+        let options;
 
-        if(type === "school"){
+        if (type === "school") {
             options = {
-                where: {sid:id}
+                where: { sid: id }
             }
-        } else  if(type === "parent"){
+        } else if (type === "parent") {
             options = {
-                where: {pid:id}
+                where: { pid: id }
             }
         }
 
@@ -129,7 +129,7 @@ exports.deleteTransaction = useAsync(async (req, res) => {
 
         const tid = req.body.tid
         const options = {
-            where: {tid}
+            where: { tid }
         }
 
         await ModelTransactions.destroy(options)
@@ -146,7 +146,7 @@ exports.singleTransaction = useAsync(async (req, res) => {
     try {
         const tid = req.params.tid
         const options = {
-            where: {tid}
+            where: { tid }
         }
 
         const transaction = await ModelTransactions.findOne(options);
@@ -160,7 +160,7 @@ exports.singleTransaction = useAsync(async (req, res) => {
 exports.allWithraw = useAsync(async (req, res) => {
     try {
         const options = {
-            where: {serviceType: "Transfer"}
+            where: { serviceType: "Transfer" }
         }
 
         const transaction = await paginated(ModelTransactions, req, options, true);
@@ -174,7 +174,7 @@ exports.allWithraw = useAsync(async (req, res) => {
 exports.allDeposit = useAsync(async (req, res) => {
     try {
         const options = {
-            where: {serviceType: "Deposit"}
+            where: { serviceType: "Deposit" }
         }
 
         const transaction = await paginated(ModelTransactions, req, options, true);
@@ -270,7 +270,7 @@ exports.bankTransfer = useAsync(async (req, res) => {
             "amount": amount,
             "narration": narration,
             "currency": currency,
-            "reference": `MGR_NGN_${ran}`,
+            "reference": `TAAP_NGN_${ran}`,
             "callback_url": callbackUrl,
             "debit_currency": debitCurrency
         }
@@ -354,5 +354,305 @@ exports.bankTransfer = useAsync(async (req, res) => {
 
         console.log(e)
         throw new errorHandle(e.message, 500)
+    }
+})
+
+//School fees Transaction 
+exports.schoolFeeTransfer = useAsync(async (req, res) => {
+    const pid = req.pid
+    const trxToken = req.headers['x-hash'];
+    const t = await sequelize.transaction();
+
+    //******************** 24hrs Check **************************//
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+    const mainTime = new Date();
+
+    if ((mainTime - await (await ModelParent.findByPk(pid)).createdAt) < twentyFourHours) {
+        return res.status(501).json(utils.JParser('24-Hour Restriction: No transactions permitted yet.', false, {}))
+    }
+    //******************** 24hrs Check **************************//
+
+    //************ Block user with bot-like transaction ******************//
+    const { timeStatus, timeMsg } = await TrxTimeChecker2(pid)
+    if (timeStatus) return res.status(501).json(utils.JParser(timeMsg, false, {}))
+    //************ Block user with bot-like transaction ******************//
+
+    //*************** Trx Refs *****************//
+    const transId = generateTransactionId(7)
+    const ran = generateTransactionId(12)
+    const rans = generateTransactionId(12)
+    //*************** Trx Refs *****************//
+
+    let { amount, sid, narration, pin } = req.body
+
+    //*************** Trx Token Check && Trx Time Lapse *****************//
+    if (!trxToken) return res.status(501).json(utils.JParser('Transaction denied -', false, {}))
+
+    let trxTokenData = await ModelTrxToken.findOne({ where: { trxToken, isUsed: false, pid } })
+
+    if (!trxTokenData) return res.status(501).json(utils.JParser('Transaction denied!', false, {}))
+
+    const currentTime = new Date();
+
+    const timeDifference = currentTime - trxTokenData?.createdAt;
+
+    if (timeDifference > 60000) return res.status(501).json(utils.JParser('Transaction expired', false, {}))
+
+    let lastTrx = await ModelTransactions.findOne({ where: { pid }, order: [['createdAt', 'DESC']], })
+
+    let trxTimeDiff = currentTime - lastTrx?.createdAt
+
+    if (trxTimeDiff < 60000) return res.status(501).json(utils.JParser('Transaction denied', false, {}))
+
+    //*************** Check Trx 1-min Time Diff *****************//
+    await trxTokenData.update({ transactionID: transId, isUsed: true, status: "successful" })
+    //*************** Check Trx 1-min Time Diff *****************//
+    //*************** Trx Token Check && Trx Time Lapse *****************//
+
+    const trxCurrency = 'NGN'
+
+    const minimumTrx = 10
+
+
+    const userOptions = {
+        where: { pid },
+        transaction: t
+    }
+
+    amount = parseInt(amount)
+
+    const sender = await ModelParent.findOne(userOptions);
+
+    //*************** Decrypt Pin && Business Check *****************//
+    let originalPin
+    let isBlocked;
+
+    if (sender) {
+        isBlocked = sender.blocked
+        originalPin = DecryptPin(sender.pin)
+    } else {
+        return res.status(404).json(utils.JParser('Parents not found', !!sender, sender))
+    }
+    //*************** Decrypt Pin && Business Check *****************//
+
+    //*************** Wallet Tag Check *****************//
+    if (!sid) return res.status(400).json({ msg: 'please check the fields' })
+    //*************** Wallet Tag Check *****************//
+
+    //*************** Receiver's Details *****************//
+    const receiverOption = {
+        where: { sid: sid }
+    }
+    const isSchool = !!await ModelParent.findOne(receiverOption)
+    //*************** Receiver's Details *****************//
+
+    //*************** Sender Details *****************//
+    const senderOldBalance = sender.balance
+    const senderFullName = sender.firstName + " " + sender.lastName
+    const senderNewBalance = senderOldBalance - amount
+    //*************** Sender Details *****************//
+
+    //*************** Receiver's Details *****************//
+    const receiver = await ModelSchool.findOne(receiverOption)
+    const receiverOldBalance = receiver.balance
+    let receiverNewBalance = +receiverOldBalance + +amount
+    const receiverFullName = receiver.name
+    //*************** Receiver's Details *****************//
+
+    //*************** Global *****************//
+    let systemDowntime = await GlobalDisable()
+    //*************** Global *****************//
+
+    //********** Row Check **********//
+
+    let { auditBalance, audit } = await RowCheck2(pid, res)
+
+    if (!audit) {
+        await fraudulentTrx(bid, transId, amount, amount, auditBalance)
+        return res.status(400).json(utils.JParser('Transaction audit failed please contact support', false, []));
+    }
+
+    if (auditBalance < amount) {
+        return res.status(400).json(utils.JParser('Insufficient funds', false, []));
+    }
+    //********** Row Check **********//
+
+    //********** Row Check **********//
+    const senderMainBalance = await RowCheck2(pid, res)
+    if (senderMainBalance < amount) {
+        return res.status(400).json(utils.JParser('Insufficient funds', false, []));
+    }
+    //********** Row Check **********//
+
+    if (sender.transferBlock === true) {
+        //*************** Sender locked *****************//
+        return res.status(400).json(utils.JParser('Your transaction is blocked by the management, Contact support if you think this a mistake', false, []));
+    } else if (receiver.blocked === true) {
+        //*************** Receiver locked *****************//
+        return res.status(400).json(utils.JParser('Transaction to this account is blocked', false, []));
+    } else if (!!systemDowntime) {
+        //*************** System locked *****************//
+        return res.status(400).json(utils.JParser('Sorry service temporarily unavailable', !!systemDowntime, systemDowntime));
+    } else if (sender.pid === sid) {
+        //*************** Self fund *****************//
+        return res.status(400).json(utils.JParser('Sorry you can not send money to yourself', false, []))
+    } else if (isBlocked === true) {
+        //*************** Sender Account blocked *****************//
+        return res.status(400).json(utils.JParser('Sorry your account is blocked', false, []))
+    } else if (originalPin !== pin) {
+        //*************** Pin Check *****************//
+        return res.status(400).json(utils.JParser('Wrong pin', false, []))
+    } else if (senderOldBalance < amount) {
+        //*************** Balance check *****************//
+        return res.status(400).json(utils.JParser('Insufficient funds', false, []))
+    } else if (senderOldBalance < minimumTrx) {
+        return res.status(400).json(utils.JParser('You do not have enough money', false, []))
+    } else if (amount < minimumTrx) {
+        return res.status(400).json(utils.JParser(`You can not send any money lower than ${trxCurrency}${minimumTrx}`, false, []))
+    } else {
+
+        try {
+
+            const opt = {
+                where: { amount: total }
+            }
+
+            const receiverId = receiver.sid
+
+            //*************** Receiver Trx Body *****************//
+            const receiverTrxData = {
+                "amount": amount,
+                "pid": sender.pid,
+                "serviceType": "Deposit",
+                "sid": receiverId,
+                "narration": narration,
+                "statusType": "Credit",
+                "status": "successful",
+                "transactionID": transId,
+                "fullName": senderFullName,
+                "bankName": "Taap",
+                "creditAmount": amount,
+                "reference": `TAAP_NGN_${ran}`,
+                "balance": receiverNewBalance
+            }
+            //*************** Receiver Trx Body *****************//
+
+            //*************** Sender Trx Body *****************//
+            const senderTrxData = {
+                "amount": amount,
+                "sid": receiver.sid,
+                "serviceType": "Transfer",
+                "pid": pid,
+                "narration": narration,
+                "statusType": "Debit",
+                "status": "successful",
+                "transactionID": transId,
+                "debitAmount": amount,
+                "fullName": receiverFullName,
+                "bankName": "Taap",
+                "reference": `TAAP_NGN_${rans}`,
+                "balance": senderNewBalance
+            }
+
+            // const transaction = await ModelTransactions.create(senderTrxData)
+            // //*************** Sender Trx Body *****************//
+
+            //I have to change the sender details creation because of aa
+
+            if (senderTrxData) {
+
+                //*************** Sender Balance Update ***************** XX//
+                const senderUpdate = { balanceUpdatedAt: Date.now() }
+
+                await sender.decrement("balance", { by: amount, transaction: t })
+                await sender.update(senderUpdate, { transaction: t })
+                //*************** Sender Balance Update ***************** XX//
+
+                //*************** Receiver Balance Update *****************//
+                const receiverUpdate = { walletUpdatedAt: Date.now() }
+                await receiver.increment("balance", { by: amount, transaction: t })
+                await receiver.update(receiverUpdate, { transaction: t })
+
+                const recTrx = await ModelTransactions.create(receiverTrxData, { transaction: t })
+                //*************** Receiver Balance Update *****************//
+
+                const transaction = await ModelTransactions.create(senderTrxData, { transaction: t })
+                //*************** Sender Trx Body *****************//
+
+                //***** Main Trx ******//
+                const mainTrxBodySender = {
+                    bid: bid,
+                    narration: narration,
+                    debitAmount: amount,
+                    fullName: senderFullName,
+                    bankName: "Taap",
+                    reference: `TAAP_NGN_${rans}`,
+                    transactionID: transId,
+                    tag: bid,
+                    serviceType: "Transfer",
+                    amount: parseFloat(transaction.amount),
+                    prevBalance: parseFloat(senderOldBalance),
+                    newBalance: senderNewBalance,
+                    status: 'Successful',
+                    statusType: 'Debit'
+                }
+
+                const mainTrxBodyReceiver = {
+                    "sid": receiverId,
+                    narration: narration,
+                    fullName: receiverFullName,
+                    bankName: "Taap",
+                    creditAmount: amount,
+                    reference: `TAAP_NGN_${ran}`,
+                    transactionID: transId,
+                    tag: receiver.sid,
+                    serviceType: "Deposit",
+                    amount: parseFloat(recTrx.amount),
+                    prevBalance: parseFloat(receiverOldBalance),
+                    newBalance: receiverNewBalance,
+                    status: 'Successful',
+                    statusType: 'Credit'
+                }
+
+                await ModelTrx.findOrCreate({
+                    where: { tid: transaction.tid },
+                    defaults: mainTrxBodySender,
+                    transaction: t
+                })
+
+                await ModelTrx.findOrCreate({
+                    where: { tid: recTrx.tid, sid: recTrx.sid },
+                    defaults: mainTrxBodyReceiver,
+                    transaction: t
+                })
+                //***** Main Trx ******//
+
+                res.json(utils.JParser('Transaction Successful', !!transaction, transaction));
+
+                //********* Sender's Notification ***********//
+                let note = {
+                    title: "Debit Alert",
+                    body: `Your transfer of NGN${receiverTrxData?.amount.toLocaleString()} to ${receiverFullName} of ${receiverTrxData.bankName} was successful`,
+                };
+                Notify(pid, note.title, note.body, etpl.TransactionEmail, `NGN${receiverTrxData?.amount.toLocaleString()}`, 0)
+                //********* Sender's Notification ***********//
+
+                //********* Receiver's Notification ***********//
+                let note2 = {
+                    title: "Credit Alert",
+                    body: `You have been credited the sum of NGN${receiverTrxData?.amount.toLocaleString()} from ${senderFullName} of ${receiverTrxData.bankName}`,
+                };
+
+                Notify(receiverId, note2.title, note2.body, etpl.TransactionEmail, `NGN${receiverTrxData?.amount.toLocaleString()}`, 0, {}, "", "", "")
+                //********* School's Notification ***********//
+
+            }
+
+            await t.commit();
+        } catch (e) {
+            console.log(e)
+            await t.rollback();
+            throw new errorHandle(e.message, 400)
+        }
     }
 })

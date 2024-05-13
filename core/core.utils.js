@@ -275,6 +275,43 @@ exports.TrxTimeChecker = async (sid) => {
     //************ Block school with bot-like transaction ******************//
 }
 
+exports.TrxTimeChecker2 = async (pid) => {
+    //******* Get Transaction belonging to school and do balance check *******//
+    let parent = await ModelParent.findOne({ where: { pid } })
+    const lastThreeTrx = await ModelTrx.findAll({
+        where: { pid, status: 'Successful' },
+        order: [['createdAt', 'DESC']],
+        limit: 5
+    });
+
+    //************ Block school with bot-like transaction ******************//
+    const lastTrx = lastThreeTrx[0]
+    const curDate = new Date()
+    let timeDiff = curDate - lastTrx.createdAt;
+
+    let trxTrials = parent.trxTrials + 1
+    if (timeDiff < 60000 * 0.5) {
+        await parent.update({
+            trxTrials
+        });
+        if (parent.trxTrials >= 3) {
+            await parent.update({
+                blocked: true,
+                transferBlock: true,
+            });
+            return {
+                timeStatus: true,
+                timeMsg: 'Request Failed - Multiple duplicate retries detected. If continued might block your account. If this is a security breach kindly change your password or send email to support@taap.com, Account is blocked at this stage.'
+            }
+        }
+        return { timeStatus: true, timeMsg: 'Duplicate Transfer - You have a recent transaction with the same amount and account number.' }
+    }
+    return { timeStatus: false, timeMsg: "" }
+
+    //************ Block school with bot-like transaction ******************//
+}
+
+
 exports.RowCheck = async (sid, res) => {
 
     //******* Get Transaction belonging to school and do balance check *******//
@@ -296,7 +333,37 @@ exports.RowCheck = async (sid, res) => {
 
     //******* Get Transaction belonging to school and do balance check *******//
 
-    const userBalance = school.walletBalance
+    const userBalance = school.balance
+    const auditBalance = lastThreeTrx[0]?.newBalance ? lastThreeTrx[0]?.newBalance : 0
+    if (balanceAuditPassed) {
+        return {auditBalance, audit: userBalance === auditBalance};
+    }
+
+    return {auditBalance, audit: false};
+}
+
+exports.RowCheck2 = async (pid, res) => {
+
+    //******* Get Transaction belonging to parent and do balance check *******//
+    let parent = await ModelParent.findOne({where: {pid}})
+    const lastThreeTrx = await ModelTrx.findAll({
+        where: {pid, status: 'Successful'},
+        order: [['txid', 'DESC']],
+        limit: 5
+    });
+
+    const balanceAuditPassed = lastThreeTrx.every((trx, index) => {
+        if (index > 0) {
+            const previousTrx = lastThreeTrx[index - 1];
+            return trx.newBalance === previousTrx.prevBalance;
+        }
+        return true;
+    });
+
+
+    //******* Get Transaction belonging to parent and do balance check *******//
+
+    const userBalance = parent.balance
     const auditBalance = lastThreeTrx[0]?.newBalance ? lastThreeTrx[0]?.newBalance : 0
     if (balanceAuditPassed) {
         return {auditBalance, audit: userBalance === auditBalance};

@@ -20,6 +20,7 @@ ModelTrx.init({
     sid: {type: DataTypes.INTEGER},
     tid: {type: DataTypes.INTEGER},
     pid: {type: DataTypes.INTEGER},
+    tag: {type: DataTypes.INTEGER},
     transactionID: {type: DataTypes.STRING},
     amount: {type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00},
     prevBalance: {type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00},

@@ -28,6 +28,11 @@ ModelParent.init({
     token: {type: DataTypes.STRING, allowNull: true, unique: true},
     lastLogin: {type: DataTypes.STRING, allowNull: true, unique: true},
     whoIs: {type: DataTypes.INTEGER, defaultValue: 0},
+    pin: {type: DataTypes.STRING},
+    transferBlock: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
     blocked: {type: DataTypes.BOOLEAN, defaultValue: false},
 }, {sequelize, tableName});
 /**
