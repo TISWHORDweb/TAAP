@@ -330,7 +330,6 @@ exports.RowCheck = async (sid, res) => {
         return true;
     });
 
-
     //******* Get Transaction belonging to school and do balance check *******//
 
     const userBalance = school.balance

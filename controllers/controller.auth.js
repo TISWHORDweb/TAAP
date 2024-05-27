@@ -30,16 +30,16 @@ exports.authLogin = useAsync(async (req, res, next) => {
         const schema = Joi.object({
             email: Joi.string().email({ minDomainSegments: 2 }).required(),
             password: Joi.string().min(6).max(12).required(),
-            location: Joi.required(),
-            ip: Joi.required(),
-            device: Joi.required()
+            location: Joi.string().required(),
+            ip: Joi.string().required(),
+            device: Joi.string().required()
         })
         //capture user data
         const { email, password } = req.body;
         //validate user
-        const validator = await schema.validateAsync({ email, password });
-        const value = await schema.validateAsync(req.body);
-        const user = await checkMail(value.email)
+        // const value = await schema.validateAsync({ email, password });
+        const validator = await schema.validateAsync(req.body);
+        const user = await checkMail(validator.email)
         if (!user) return res.json(utils.JParser('Invalid email or password', false, []));
         if (user.blocked === true) return res.json(utils.JParser('Sorry your account is blocked', false, []));
         const originalPassword = await bcrypt.compare(password, user.password);
@@ -59,14 +59,22 @@ exports.authLogin = useAsync(async (req, res, next) => {
             const lastLogin = CryptoJS.AES.encrypt(JSON.stringify(new Date()), process.env.SECRET_KEY).toString()
             user.token = token
             user.password = "********************************"
+            let name;
+            if (user.firstName) {
+                name = user.firstName + " " + user.lastName
+            } else {
+                name = user.name
+            }
             await user.update({ token, lastLogin });
             const body = {
-                name: user.firstName + " " + user.lastName,
-                msg: `We noticed your TAAP account was logged in on ${device} from ${validator.location} with the IP address ${ip}, on <strong>${when}</strong>. If this was you, there’s no need to do anything.`,
+                name: name,
+                msg: `We noticed your TAAP account was logged in on ${device} from ${validator.location} with the IP address ${ip}, on <strong>${when}</strong>. If this was you, there’s no need to do anything. <br>
+                <span>Not you? Change your password and kindly send an email to support@taap.com or reach us via in-app support.</span>
+                `,
                 subject: "Login Notification"
             }
 
-            EmailNote(email, body.name, body.msg, body.subject)
+            EmailNote(email, body.name, body.msg, body.subject, "")
             res.json(utils.JParser("Logged in successfully", !!user, user));
         }
     } catch (e) {
@@ -90,18 +98,19 @@ exports.authParentRegister = useAsync(async (req, res, next) => {
             password: Joi.string().min(6).max(12).required()
         })
         //validate user
-        const value = await schema.validateAsync(req.body);
-        const MailCheck = await checkMail(value.email)
+        const validator = await schema.validateAsync(req.body);
+        const MailCheck = await checkMail(validator.email)
         if (MailCheck) return res.json(utils.JParser('There is another user with this email, Change it and try again', false, []));
         //rebuild user object
-        value.apiKey = sha1(value.email + new Date().toISOString);
-        value.token = sha1(value.email + new Date().toISOString)
-        value.password = bcrypt.hash(value.password, 13)
-        value.lastLogin = CryptoJS.AES.encrypt(JSON.stringify(new Date()), process.env.SECRET_KEY).toString()
+        validator.apiKey = sha1(validator.email + new Date().toISOString);
+        validator.token = sha1(validator.email + new Date().toISOString)
+        validator.password = await bcrypt.hash(validator.password, 13)
+        validator.lastLogin = CryptoJS.AES.encrypt(JSON.stringify(new Date()), process.env.SECRET_KEY).toString()
+
         //insert into db
         const [parent, created] = await ModelParent.findOrCreate({
-            where: { email: value.email },
-            defaults: value
+            where: { email: validator.email },
+            defaults: validator
         });
         //indicate if the user is newx
         let newParent = JSON.parse(JSON.stringify(parent));
@@ -112,14 +121,15 @@ exports.authParentRegister = useAsync(async (req, res, next) => {
         //send a welcome email here
         if (created) {
             const body = {
-                email: value.email,
-                name: value.firstName + " " + value.lastName,
-                body: `Congratulastion your account has been created successfully`,
-                subject: "Account creation"
+                email: validator.email,
+                name: validator.firstName + " " + validator.lastName,
+                body: `We're thrilled to welcome you to the Taap!  Your account is now successfully created, and you're ready to explore all that we have to offer. `,
+                subject: "Welcome to TAAP!"
             }
-            EmailNote(body.email, body.name, body.body, body.subject)
+            EmailNote(body.email, body.name, body.body, body.subject, "")
         }
     } catch (e) {
+        console.log(e);
         throw new errorHandle(e.message, 202);
     }
 });
@@ -134,18 +144,19 @@ exports.authSchoolRegister = useAsync(async (req, res, next) => {
             password: Joi.string().min(6).max(12).required()
         })
         //validate user
-        const value = await schema.validateAsync(req.body);
-        const MailCheck = await checkMail(value.email)
+        const validator = await schema.validateAsync(req.body);
+        const MailCheck = await checkMail(validator.email)
         if (MailCheck) return res.json(utils.JParser('There is another user with this email, Change it and try again', false, []));
         //rebuild user object
-        value.apiKey = sha1(value.email + new Date().toISOString);
-        value.token = sha1(value.email + new Date().toISOString)
-        value.password = bcrypt.hash(value.password, 13)
-        value.lastLogin = CryptoJS.AES.encrypt(JSON.stringify(new Date()), process.env.SECRET_KEY).toString()
+        validator.apiKey = sha1(validator.email + new Date().toISOString);
+        validator.token = sha1(validator.email + new Date().toISOString)
+        validator.password = await bcrypt.hash(validator.password, 13)
+        validator.lastLogin = CryptoJS.AES.encrypt(JSON.stringify(new Date()), process.env.SECRET_KEY).toString()
+        const name = validator.name
         //insert into db
         const [school, created] = await ModelSchool.findOrCreate({
-            where: { email: value.email },
-            defaults: value
+            where: { email: validator.email },
+            defaults: validator
         });
         //indicate if the user is newx
         let newSchool = JSON.parse(JSON.stringify(school));
@@ -156,12 +167,12 @@ exports.authSchoolRegister = useAsync(async (req, res, next) => {
         //send a welcome email here
         if (created) {
             const body = {
-                email: value.email,
-                name: value.firstName + " " + value.lastName,
-                body: `Congratulastion your account has been created successfully`,
-                subject: "Account creation"
+                email: validator.email,
+                name: name,
+                body: `We're thrilled to welcome you to the Taap!  Your account is now successfully created, and you're ready to explore all that we have to offer. `,
+                subject: "Welcome to TAAP!"
             }
-            EmailNote(body.email, body.name, body.body, body.subject)
+            EmailNote(body.email, body.name, body.body, body.subject, "")
         }
     } catch (e) {
         throw new errorHandle(e.message, 202);
@@ -180,18 +191,18 @@ exports.authAdminRegister = useAsync(async (req, res, next) => {
             password: Joi.string().min(6).max(12).required()
         })
         //validate user
-        const value = await schema.validateAsync(req.body);
-        const MailCheck = await checkMail(value.email)
+        const validator = await schema.validateAsync(req.body);
+        const MailCheck = await checkMail(validator.email)
         if (MailCheck) return res.json(utils.JParser('There is another user with this email, Change it and try again', false, []));
         //rebuild user object
-        value.apiKey = sha1(value.email + new Date().toISOString);
-        value.token = sha1(value.email + new Date().toISOString)
-        value.password = bcrypt.hash(value.password, 13)
-        value.lastLogin = CryptoJS.AES.encrypt(JSON.stringify(new Date()), process.env.SECRET_KEY).toString()
+        validator.apiKey = sha1(validator.email + new Date().toISOString);
+        validator.token = sha1(validator.email + new Date().toISOString)
+        validator.password = await bcrypt.hash(validator.password, 13)
+        validator.lastLogin = CryptoJS.AES.encrypt(JSON.stringify(new Date()), process.env.SECRET_KEY).toString()
         //insert into db
         const [admin, created] = await ModelAdmin.findOrCreate({
-            where: { email: value.email },
-            defaults: value
+            where: { email: validator.email },
+            defaults: validator
         });
         //indicate if the user is newx
         let newAdmin = JSON.parse(JSON.stringify(admin));
@@ -202,10 +213,10 @@ exports.authAdminRegister = useAsync(async (req, res, next) => {
         //send a welcome email here
         if (created) {
             const body = {
-                email: value.email,
-                name: value.firstName + " " + value.lastName,
-                body: `Congratulastion your account has been created successfully`,
-                subject: "Account creation"
+                email: validator.email,
+                name: validator.firstName + " " + validator.lastName,
+                body: `We're thrilled to welcome you to the Taap!  Your account is now successfully created, and you're ready to explore all that we have to offer. `,
+                subject: "Welcome to TAAP!"
             }
             EmailNote(body.email, body.name, body.body, body.subject)
         }
@@ -230,17 +241,20 @@ exports.authVerifyEmail = useAsync(async (req, res, next) => {
 
         //capture user data
         const { email } = req.body;
+        const user = "User"
 
         //validate user
         await schema.validateAsync({ email });
 
-        let body = {
+        const body = {
             subject: "Email verification",
-            description: `Please enter the code: ${code}`,
-            name: "User"
+            description: `Thanks for joining TAAP! To complete your registration and access all the features, please verify your email address.
+            <br><br>
+            Just copy and paste the following code into the verification field <br>`,
+            name: user
         }
 
-        EmailNote(email, body.name, body.description, body.subject, code)
+        await EmailNote(email, body.name, body.description, body.subject, code)
         res.json(utils.JParser("Email reset successfully", true, []));
 
     } catch (e) {

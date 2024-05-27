@@ -17,7 +17,7 @@ router.post('/parent/register', bodyParser, authParentRegister);
 router.post('/school/register', bodyParser, authSchoolRegister);
 router.post('/admin/register', bodyParser, authAdminRegister);
 router.post('/reset', bodyParser, authReset);
-router.post('/verify/email', bodyParser, authVerifyEmail);
+router.patch('/verify/email', bodyParser, authVerifyEmail);
 router.post('/reset/verify', bodyParser, authVerify);
 router.post('/reset/password', bodyParser, authResetPassword);
 

@@ -5,6 +5,8 @@
 const sequelize = require('../database');
 const {DataTypes, Model} = require('sequelize');
 const tableName = "taap_parent";
+const queryInterface = sequelize.getQueryInterface();
+
 /**
  * Model extending sequelize model class
  */
@@ -38,5 +40,12 @@ ModelParent.init({
 /**
  * Run belonging and relationship before sync()
  */
+
+// queryInterface.addColumn(tableName, 'transferBlock', {
+//     type: DataTypes.STRING
+// });
+
+// queryInterface.removeColumn('taap_parent', 'cardId');
+
 sequelize.sync();
 module.exports = ModelParent;
