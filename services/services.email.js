@@ -1,11 +1,14 @@
 'use strict';
-
+/**
+ * Slantapp code and properties {www.slantapp.io}
+ */
 const nodemailer = require("nodemailer");
 const fs = require('fs');
+require('dotenv').config();
 
 class MailTemple {
-    btnUrl = "https://taap.com";
-    btnText = "Check classes";
+    // btnUrl = "https://mongoro.com";
+    // btnText = "Check classes";
     constructor(to) {
         this.to = to;
     }
@@ -17,11 +20,6 @@ class MailTemple {
 
     who(name) {
         this.name = name;
-        return this;
-    }
-
-    btnText(text) {
-        this.btnText = text;
         return this;
     }
 
@@ -40,11 +38,16 @@ class MailTemple {
         return this;
     }
 
+    code(code) {
+        this.code = code;
+        return this;
+    }
+
     async send() {
         //compute email sending template here...
         const rd = fs.readFileSync(__dirname + '/template/template.mt');
         const rawTmpl = rd.toString('utf-8');
-        const compile = render(rawTmpl, {body: this.body, name: this.name, btnText: this.btnText, btnUrl: this.btnUrl});
+        const compile = render(rawTmpl, {body: this.body, name: this.name, code: this.code, btnUrl: this.btnUrl});
         return await transporter(compile, this.to, this.subject);
     }
 }
@@ -55,16 +58,18 @@ async function transporter(html, to, sub) {
     // Only needed if you don't have a real mail account for testing
 
     // create reusable transporter object using the default SMTP transport
-    let transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: 465,
-        secure: true, // true for 465, false for other ports
-        auth: {
-            user: process.env.EMAIL_USER, // generated ethereal user
-            pass: process.env.EMAIL_PASS, // generated ethereal password
-        },
-        logger: false,
-    });
+    let transporter = nodemailer.createTransport(
+        {
+            // service: process.env.EMAIL_HOST,
+            // port: 587,
+            // secure: false, // true for 465, false for other ports
+            service: 'gmail',
+            host: 'smtp.gmail.com',
+            auth: {
+                user: process.env.EMAIL_USER, // generated ethereal business
+                pass: process.env.EMAIL_PASS, // generated ethereal password
+            },
+        });
     // send mail with defined transport object
     return transporter.sendMail({
         from: `${sub} <${process.env.EMAIL_USER}>`, // sender address
@@ -72,6 +77,7 @@ async function transporter(html, to, sub) {
         subject: sub, // Subject line
         html: html, // html body
     });
+
     //console.log("Message sent: %s", info.messageId);
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 }
