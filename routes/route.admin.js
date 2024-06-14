@@ -13,7 +13,7 @@ const { allTransfer, adminUserTransfer, deleteTransaction, singleTransaction, al
 /**
  * SCHOOL ROUTES 
  */
-router.post('/school/create', adminBodyGuard, createSchool);
+
 router.get('/school/all', adminBodyGuard, allSchool);
 router.delete('/school/delete', adminBodyGuard, deleteSchool);
 router.put('/school/status/:status', adminBodyGuard, changeSchoolStatus);

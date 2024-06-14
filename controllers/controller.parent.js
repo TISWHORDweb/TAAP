@@ -56,14 +56,14 @@ exports.getParent = useAsync(async (req, res) => {
         const options = {
             where: { pid }
         }
-
-        if (!pid) return res.status(402).json(utils.JParser('id not found', false, []));
+    console.log(pid);
+        if (!pid) return res.status(400).json(utils.JParser('id not found', false, []));
 
         const parent = await ModelParent.findOne(options);
         if (parent) {
             return res.json(utils.JParser('Parent fetch successfully', !!parent, parent));
         } else {
-            return res.status(402).json(utils.JParser('Parent not found', false, []));
+            return res.status(400).json(utils.JParser('Parent not found', false, []));
         }
 
     } catch (e) {

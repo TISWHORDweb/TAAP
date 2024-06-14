@@ -91,7 +91,6 @@
       <p>We're excited to help you explore everything TAAP has to offer. If you have any questions or need assistance,
         please don't hesitate to reach out to our support team at <a href="mailto:support@TAAP.com"
           style="color: #007bff;">support@TAAP.com</a>.</p>
-      <p>Welcome aboard!</p>
       <p>Warm regards,<br>The TAAP Team</p>
     </div>
     <div class="footer">

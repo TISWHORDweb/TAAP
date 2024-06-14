@@ -5,6 +5,7 @@
 const sequelize = require('../database');
 const {DataTypes, Model} = require('sequelize');
 const tableName = "taap_program";
+const queryInterface = sequelize.getQueryInterface();
 /**
  * Model extending sequelize model class
  */
@@ -18,6 +19,7 @@ ModelProgram.init({
     amount: {
         type: DataTypes.DECIMAL(20, 2), defaultValue: 0.00
     },
+    duration: {type: DataTypes.STRING, allowNull: false},
     deadline: {type: DataTypes.STRING, allowNull: false},
     description: {type: DataTypes.STRING, allowNull: true},
     status: {type: DataTypes.BOOLEAN, defaultValue: false},
@@ -27,3 +29,7 @@ ModelProgram.init({
  */
 sequelize.sync();
 module.exports = ModelProgram;
+
+// queryInterface.addColumn(tableName, 'duration', {
+//     type: DataTypes.STRING, allowNull: false
+// });

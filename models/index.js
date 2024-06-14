@@ -5,6 +5,7 @@ exports.ModelAdmin = require('./model.admin');
 exports.ModelTransactions = require('./model.transaction');
 exports.ModelWebhook = require('./model.webhook');
 exports.ModelProgram = require('./model.program');
+exports.ModelBank = require('./model.bank');
 exports.ModelTrx = require('./model.trx');
 exports.ModelTrxToken = require('./model.transaction.token');
 exports.ModelGlobal = require('./model.global');

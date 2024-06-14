@@ -47,7 +47,7 @@ exports.adminBodyGuard = useAsync(async (req, res, next) => {
         //********** Throw error if token has expired (1hr) **************//
         if (((new Date) - lastLogin) > oneHour) { res.status(401).json(utils.JParser("Invalid or expired token, Use a valid token and try again", false, [])); }
 
-        req.aid = isValid._id
+        req.aid = isValid.aid
         if (isValid.blocked === false) next();
         else return res.status(400).json(utils.JParser("token is valid but is not authorized for this route, Use a valid token and try again", false, []));
     } else res.status(400).json(utils.JParser("Invalid token code or token, Use a valid token and try again", false, []));
@@ -79,7 +79,7 @@ exports.schoolBodyGuard = useAsync(async (req, res, next) => {
         //********** Throw error if token has expired (1hr) **************//
         if (((new Date) - lastLogin) > oneHour) { res.status(401).json(utils.JParser("Invalid or expired token, Use a valid token and try again", false, [])); }
 
-        req.sid = isValid._id
+        req.sid = isValid.sid
         if (isValid.blocked === false) next();
         else return res.status(400).json(utils.JParser("token is valid but is not authorized for this route, Use a valid token and try again", false, []));
     } else res.status(400).json(utils.JParser("Invalid token code or token, Use a valid token and try again", false, []));
@@ -111,7 +111,7 @@ exports.parentBodyGuard = useAsync(async (req, res, next) => {
         //********** Throw error if token has expired (1hr) **************//
         if (((new Date) - lastLogin) > oneHour) { res.status(401).json(utils.JParser("Invalid or expired token, Use a valid token and try again", false, [])); }
 
-        req.pid = isValid._id
+        req.pid = isValid.pid
         if (isValid.blocked === false) next();
         else return res.status(400).json(utils.JParser("token is valid but is not authorized for this route, Use a valid token and try again", false, []));
     } else res.status(400).json(utils.JParser("Invalid token code or token, Use a valid token and try again", false, []));

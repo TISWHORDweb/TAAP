@@ -1,6 +1,6 @@
 const useAsync = require('./../core/core.async');
-const {utils, errorHandle} = require("../core");
-const {ModelBusiness, ModelBank} = require('./../models');
+const { utils, errorHandle } = require("../core");
+const { ModelBank } = require('./../models');
 const Flutterwave = require('flutterwave-node-v3');
 const Joi = require("joi");
 const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
@@ -10,7 +10,15 @@ const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_K
 exports.addBank = useAsync(async (req, res) => {
     const sid = req.sid
     try {
+        if (!sid) return res.status(400).json(utils.JParser('id not found', false, []));
 
+        const options = {
+            where: { sid }
+        }
+
+        const check = await ModelBank.findOne(options)
+        
+        if (check) return res.json(utils.JParser('This school have added their bank already ', false, []))
         const schema = Joi.object({
             bankAccountNumber: Joi.required(),
             bankCode: Joi.required(),
@@ -25,11 +33,11 @@ exports.addBank = useAsync(async (req, res) => {
         };
 
         await flw.Misc.verify_Account(details).then(async response => {
-
+            console.log(response)
             if (response) {
                 const body = {
                     sid: sid,
-                    bankAccountNumber: response.data.account_name,
+                    bankAccountNumber: validator.bankAccountNumber,
                     bankName: validator.bankName,
                     bankCode: validator.bankCode,
                     accountName: response.data.account_name
@@ -60,7 +68,7 @@ exports.singleBank = useAsync(async (req, res) => {
     try {
         const bid = req.params.id
         const options = {
-            where: {bid}
+            where: { bid }
         }
 
         const bank = await ModelBank.findOne(options);
@@ -74,11 +82,11 @@ exports.schoolBank = useAsync(async (req, res) => {
     try {
         const sid = req.sid
         const options = {
-            where: {sid}
+            where: { sid }
         }
 
-        const bank = await ModelBank.findAll(options);
-        res.json(utils.JParser('Banks fetched successfully', !!bank, bank?.reverse()))
+        const bank = await ModelBank.findOne(options);
+        res.json(utils.JParser('Banks fetched successfully', !!bank, bank))
     } catch (e) {
         throw new errorHandle(e.message, 400)
     }
@@ -87,13 +95,13 @@ exports.schoolBank = useAsync(async (req, res) => {
 exports.deleteBank = useAsync(async (req, res) => {
     try {
 
-        const bid = req.body.bid
+        const bid = req.body.id
         const options = {
-            where: {bid}
+            where: { bid }
         }
 
         let del = await ModelBank.destroy(options)
-        !!del ? res.json(utils.JParser("Deleted successfully", !!del, del)) : res.json(utils.JParser("Bank not found", !!del, del), 404)
+        !!del ? res.json(utils.JParser("Deleted successfully", !!del, [])) : res.json(utils.JParser("Bank not found", !!del, del), 404)
     } catch (e) {
         throw new errorHandle(e.message, 400)
     }
@@ -111,6 +119,7 @@ exports.AllverifyBanks = useAsync(async (req, res) => {
         }
 
         let banks = await (await fetch(url, config)).json()
+        console.log(banks);
         banks = banks.data
         if (!banks) banks = require('../banks.json')
         //**** Sort in alphabetical order ****//

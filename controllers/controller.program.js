@@ -11,14 +11,12 @@ exports.createProgram = useAsync(async (req, res) => {
     try {
 
         const sid = req.sid
-       
+        req.body.sid = sid
         if (!req.body.name || !req.body.sid  || !req.body.amount || !req.body.deadline ) return res.json(utils.JParser('please check the fields', false, []));
         const options = {
             wheere:{sid,name:req.body.name}
         }
-        const validates = await ModelSchool.findOne(options)
-
-        req.body.sid = sid
+        const validates = await ModelProgram.findOne(options)
 
         if (validates) {
             return res.json(utils.JParser('This program have been created by you before', false, []));
@@ -51,7 +49,7 @@ exports.editProgram = useAsync(async (req, res) => {
         if (!prid) return res.status(402).json(utils.JParser('Program not found', false, []));
 
         await ModelProgram.update(body, options).then(async () => {
-            const program = await ModelSchool.findOne(options);
+            const program = await ModelProgram.findOne(options);
             return res.json(utils.JParser('Program Update Successfully', !!program, program));
         })
 

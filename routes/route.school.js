@@ -42,7 +42,7 @@ router.get('/transaction/:id', schoolBodyGuard, singleTransaction);
  */
 router.post('/bank/add', schoolBodyGuard, addBank);
 router.delete('/bank/delete', schoolBodyGuard, deleteBank);
-router.get('/bank', schoolBodyGuard, schoolBank);
+router.get('/single/bank', schoolBodyGuard, schoolBank);
 router.get('/bank/all', schoolBodyGuard, AllverifyBanks);
 router.get('/bank/:id', schoolBodyGuard, singleBank);
 

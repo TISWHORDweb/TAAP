@@ -283,16 +283,23 @@ exports.authReset = useAsync(async (req, res, next) => {
         const user = await checkMail(req.body.email)
 
         if (user) {
-
+            let name;
+            if (user.firstName) {
+                name = user.firstName + " " + user.lastName
+            } else {
+                name = user.name
+            }
             let body = {
-                subject: "Password Recovery",
-                description: `Please enter the code: ${code}`,
-                name: user.firstName + " " + user.lastName
+                subject: "Reset Your Password for TAAP",
+                description: `We received a request to reset your password for your account on Taap. <br>
+                <br> If you requested this reset, copy this code below and verify to create a new password
+                `,
+                name: name
             }
 
-            await user.update({ $set: { code: parseInt(code), password: sha1(newPass), token: sha1(user.email + new Date().toUTCString) } }).then(() => {
+            await user.update({ code: parseInt(code), password: sha1(newPass), token: sha1(user.email + new Date().toUTCString)}).then(() => {
                 EmailNote(email, body.name, body.description, body.subject, code)
-                res.json(utils.JParser("Email reset successfully", true, []));
+                res.json(utils.JParser("Reeset successfully", true, []));
             })
         } else {
             return res.json(utils.JParser('Sorry theres no user with this mail', false, []));
@@ -309,7 +316,7 @@ exports.authVerify = useAsync(async (req, res, next) => {
         //create data if all data available
         const schema = Joi.object({
             email: Joi.string(),
-            code: Joi.string()
+            code: Joi.number()
         })
 
         //capture user data
@@ -323,7 +330,8 @@ exports.authVerify = useAsync(async (req, res, next) => {
 
         if (user) {
             const userCode = user.code
-            if (userCode === parseInt(code)) {
+            console.log(userCode)
+            if (userCode === code) {
                 return res.json(utils.JParser('Verified', true, []));
             } else {
                 return res.json(utils.JParser('Incorrect code', false, []));
