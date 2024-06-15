@@ -48,6 +48,9 @@ app.use('/api/v1/parent', parentRouter);
 app.use('*', (req, res)=>{
   throw new errorHandle("Resource not found", 404);
 })
+app.get('/', (req, res)=>{
+  res.send("Welcome to TAAP")
+})
 //Add custom error handling controller
 app.use(errorHandler);
 // catch 404 and forward to error handler
