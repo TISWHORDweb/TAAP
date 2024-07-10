@@ -254,7 +254,7 @@ exports.authVerifyEmail = useAsync(async (req, res, next) => {
             name: user
         }
 
-        await EmailNote(email, body.name, body.description, body.subject, code)
+        EmailNote(email, body.name, body.description, body.subject, code)
         res.json(utils.JParser("Email reset successfully", true, []));
 
     } catch (e) {
