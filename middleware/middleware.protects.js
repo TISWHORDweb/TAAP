@@ -116,3 +116,16 @@ exports.parentBodyGuard = useAsync(async (req, res, next) => {
         else return res.status(400).json(utils.JParser("token is valid but is not authorized for this route, Use a valid token and try again", false, []));
     } else res.status(400).json(utils.JParser("Invalid token code or token, Use a valid token and try again", false, []));
 })
+
+exports.webHookBodyGuard = useAsync(async (req, res, next) => {
+    const secretHash = process.env.FLW_HASH_KEY;
+
+    const signature = req.headers["verif-hash"];
+    req.signature = signature
+    // verify that the POST request came from Flutterwave
+    if (!signature || signature !== secretHash) {
+        throw new errorHandle("Invalid secret hash", 401);
+    } else (
+        next()
+    )
+});
