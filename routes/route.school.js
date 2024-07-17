@@ -24,7 +24,7 @@ router.get('/:id', schoolBodyGuard, singleSchool);
 
 router.post('/program/create', schoolBodyGuard, createProgram);
 router.put('/program/edit', schoolBodyGuard, editProgram);
-router.get('/programs', schoolBodyGuard, getSchoolProgram);
+router.get('/program/all', schoolBodyGuard, getSchoolProgram);
 router.get('/program/:id', schoolBodyGuard, singleProgram);
 router.delete('/program/delete', schoolBodyGuard, deleteProgram);
 

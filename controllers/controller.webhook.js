@@ -2,6 +2,7 @@ const { ModelParent, ModelWebhook } = require("../models");
 const sequelize = require("../database");
 const axios = require('axios')
 const cron = require("node-cron");
+const { useAsync } = require("../core");
 
 exports.webHook = useAsync(async (req, res) => {
     const t = await sequelize.transaction();
