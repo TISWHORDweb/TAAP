@@ -94,7 +94,7 @@ exports.getSchoolProgram = useAsync(async (req, res) => {
         if (program) {
             return res.json(utils.JParser('Program fetch successfully', !!program, program));
         } else {
-            return res.status(402).json(utils.JParser('Program not found', false, []));
+            return res.status(400).json(utils.JParser('This school dont have any program yet', false, []));
         }
 
     } catch (e) {
