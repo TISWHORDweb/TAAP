@@ -4,6 +4,7 @@ const { ModelTransactions, ModelSchool, ModelTrxToken, ModelParent } = require("
 const { useAsync, utils, errorHandle, } = require('./../core');
 const cron = require('node-cron');
 const Flutterwave = require('flutterwave-node-v3');
+const axios = require('axios');
 // const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
 
 // Parent Insight
@@ -198,6 +199,55 @@ exports.generateTrxTokenHash = useAsync(async (req, res) => {
     }
 })
 
+exports.generatePaymentLink = useAsync(async (req, res) => {
+
+    const tx_ref = 'TAAP_' + generateTransactionId(13)
+    const amount = req.body.amount
+    const pid = req.pid
+
+    const option = { where: { pid } }
+
+    const parent = await ModelParent.findOne(option)
+
+    if (parent) {
+
+        const body = {
+            tx_ref: tx_ref,
+            amount: amount,
+            currency: 'NGN',
+            redirect_url: 'https://example_company.com/success',
+            customer: {
+                email: parent.email,
+                name: parent.firstName+" "+parent.lastName,
+                phonenumber: parent.phone
+            },
+            customizations: {
+                title: 'TAAP Standard Payment'
+            }
+        }
+
+        const header = {
+            headers: {
+                Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        }
+
+        try {
+            const response = await axios.post(
+                'https://api.flutterwave.com/v3/payments',
+                body,
+                header
+            );
+
+            res.json(utils.JParser('Transaction link generated', !!response, response.data.data))
+        } catch (err) {
+            console.error(err.code);
+            console.error(err.response.data);
+        } throw new errorHandle(e.message, 400)
+    }
+})
+
 //Bank Transaction Latest
 exports.bankTransfer = useAsync(async (req, res) => {
     try {
@@ -334,7 +384,6 @@ exports.bankTransfer = useAsync(async (req, res) => {
                 return res.status(400).json(utils.JParser('Not Enough Balance - Your transaction cannot be proceed. Please fund your account and try again later.', false, []));
             }
             //********** Row Check **********//
-
 
             if (oldBalance < withCharges) {
                 return res.status(400).json(utils.JParser('Not Enough Balance - Your transaction cannot be proceed. Please fund your account and try again later.', false, []));
