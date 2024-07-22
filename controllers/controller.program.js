@@ -12,24 +12,25 @@ exports.createProgram = useAsync(async (req, res) => {
 
         const sid = req.sid
         req.body.sid = sid
-        if (!req.body.name || !req.body.sid  || !req.body.amount || !req.body.deadline ) return res.json(utils.JParser('please check the fields', false, []));
-        const options = {
-            wheere:{sid,name:req.body.name}
-        }
-        const validates = await ModelProgram.findOne(options)
+        if (!req.body.name || !req.body.sid || !req.body.amount || !req.body.deadline) return res.json(utils.JParser('please check the fields', false, []));
+        //         const options = {
+        //             wheere:{sid:sid,name: req.body.name}
+        //         }
 
-        if (validates) {
-            return res.json(utils.JParser('This program have been created by you before', false, []));
-        } else {
+        //         const validates = await ModelProgram.findOne(options)
+        // console.log(options,validates)
+        //         if (validates) {
+        //             return res.json(utils.JParser('This program have been created by you before', false, []));
+        //         } else {
 
-            let Program = await new ModelProgram(req.body)
+        let Program = await new ModelProgram(req.body)
 
-            await Program.save().then(data => {
+        await Program.save().then(data => {
 
-                return res.json(utils.JParser('Program created successfully', !!data, data));
+            return res.json(utils.JParser('Program created successfully', !!data, data));
 
-            })
-        }
+        })
+        // }
     } catch (e) {
         throw new errorHandle(e.message, 400)
     }
