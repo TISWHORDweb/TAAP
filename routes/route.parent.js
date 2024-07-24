@@ -7,7 +7,7 @@ const CoreError = require('./../core/core.error');
 const { editParent, getParent, singleParent } = require('../controllers/controller.parent');
 const { getSchoolProgramById } = require('../controllers/controller.program');
 const { allSchool } = require('../controllers/controller.school');
-const { parentInsight, parentTransfer, singleTransaction } = require('../controllers/controller.transaction');
+const { parentInsight, parentTransfer, singleTransaction, generatePaymentLink } = require('../controllers/controller.transaction');
 //load controller and utils
 
 /**
@@ -34,6 +34,7 @@ router.get('/school/all', parentBodyGuard, allSchool);
 router.get('/transaction/insight', parentBodyGuard, parentInsight);
 router.get('/transactions', parentBodyGuard, parentTransfer);
 router.get('/transaction/:id', parentBodyGuard, singleTransaction);
+router.post('/transaction/payment', parentBodyGuard, generatePaymentLink);
 
 
 /**

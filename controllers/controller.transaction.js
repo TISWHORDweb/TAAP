@@ -200,52 +200,55 @@ exports.generateTrxTokenHash = useAsync(async (req, res) => {
 })
 
 exports.generatePaymentLink = useAsync(async (req, res) => {
+    try {
+        const tx_ref = 'TAAP_' + generateTransactionId(13)
+        const amount = req.body.amount
+        const pid = req.pid
 
-    const tx_ref = 'TAAP_' + generateTransactionId(13)
-    const amount = req.body.amount
-    const pid = req.pid
+        const option = { where: { pid } }
 
-    const option = { where: { pid } }
+        const parent = await ModelParent.findOne(option)
 
-    const parent = await ModelParent.findOne(option)
+        if (parent) {
 
-    if (parent) {
-
-        const body = {
-            tx_ref: tx_ref,
-            amount: amount,
-            currency: 'NGN',
-            redirect_url: 'https://example_company.com/success',
-            customer: {
-                email: parent.email,
-                name: parent.firstName+" "+parent.lastName,
-                phonenumber: parent.phone
-            },
-            customizations: {
-                title: 'TAAP Standard Payment'
+            const body = {
+                tx_ref: tx_ref,
+                amount: amount,
+                currency: 'NGN',
+                redirect_url: 'https://example_company.com/success',
+                customer: {
+                    email: parent.email,
+                    name: parent.firstName + " " + parent.lastName,
+                    phonenumber: parent.phone
+                },
+                customizations: {
+                    title: 'TAAP Standard Payment'
+                }
             }
-        }
 
-        const header = {
-            headers: {
-                Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
-                'Content-Type': 'application/json'
+            const header = {
+                headers: {
+                    Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
+                    'Content-Type': 'application/json'
+                }
             }
-        }
 
-        try {
             const response = await axios.post(
                 'https://api.flutterwave.com/v3/payments',
                 body,
                 header
             );
 
-            res.json(utils.JParser('Transaction link generated', !!response, response.data.data))
-        } catch (err) {
-            console.error(err.code);
-            console.error(err.response.data);
-        } throw new errorHandle(e.message, 400)
-    }
+            if (response) {
+                res.json(utils.JParser('Transaction link generated', !!response, response.data.data))
+            }
+        }
+
+    } catch (err) {
+        console.error(err.code);
+        console.error(err.response.data);
+        throw new errorHandle(e.message, 400)
+    } 
 })
 
 //Bank Transaction Latest
