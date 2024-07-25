@@ -241,7 +241,8 @@ exports.authVerifyEmail = useAsync(async (req, res, next) => {
 
         //capture user data
         const { email } = req.body;
-        const user = "User"
+        const user = await checkMail(email)
+        const users = "User"
 
         //validate user
         await schema.validateAsync({ email });
@@ -251,12 +252,14 @@ exports.authVerifyEmail = useAsync(async (req, res, next) => {
             description: `Thanks for joining TAAP! To complete your registration and access all the features, please verify your email address.
             <br><br>
             Just copy and paste the following code into the verification field <br>`,
-            name: user
+            name: users
         }
 
-        EmailNote(email, body.name, body.description, body.subject, code)
-        res.json(utils.JParser("Email reset successfully", true, []));
-
+        await user.update({ code: parseInt(code)}).then(() => {
+            EmailNote(email, body.name, body.description, body.subject, code)
+            res.json(utils.JParser("Email Verification code sent successfully", true, []));    
+        })
+    
     } catch (e) {
         throw new errorHandle(e.message, 400);
     }
@@ -330,7 +333,6 @@ exports.authVerify = useAsync(async (req, res, next) => {
 
         if (user) {
             const userCode = user.code
-            console.log(userCode)
             if (userCode === code) {
                 return res.json(utils.JParser('Verified', true, []));
             } else {
