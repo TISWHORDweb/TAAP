@@ -111,7 +111,7 @@ exports.getSchoolProgramById = useAsync(async (req, res) => {
             where: { sid }
         }
 
-        if (!prid) return res.status(402).json(utils.JParser('id not found', false, []));
+        if (!sid) return res.status(402).json(utils.JParser('id not found', false, []));
 
         const program = await ModelProgram.findAll(options);
         if (program) {
